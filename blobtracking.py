@@ -5,7 +5,7 @@ import itertools
 
 # --- Configuration ---
 # Specify the path to your input video file
-INPUT_VIDEO_PATH = 'car.mp4'
+INPUT_VIDEO_PATH = 'carousel_animation.mp4'
 # Specify the path for the output video file
 OUTPUT_VIDEO_PATH = 'output_orange_difference.mp4'
 
@@ -15,9 +15,10 @@ MIN_CONTOUR_AREA = 100
 # Define the properties for only the orange color
 COLOR_CONFIG = [
     {
-        "name": "orange",
-        "lower": np.array([11, 120, 150]), "upper": np.array([25, 255, 255]),
-        "bgr": (0, 165, 255)
+        "name": "yellow",
+        "lower": np.array([20, 100, 100]),  # Lower bound for yellow in HSV
+        "upper": np.array([30, 255, 255]),  # Upper bound for yellow in HSV
+        "bgr": (0, 255, 255)  # BGR color for drawing (bright yellow)
     }
 ]
 
@@ -95,7 +96,7 @@ while cap.isOpened():
             brightness = mean_hsv[2] / 255.0  # Normalize brightness to 0-1
 
             # Scale the radius based on brightness
-            final_radius = base_radius * (0.5 + brightness)
+            final_radius = base_radius * (0.25 + brightness/2)
 
             # Calculate centroid
             M = cv2.moments(c)
