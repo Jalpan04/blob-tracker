@@ -17,7 +17,8 @@ This repository contains Python scripts for tracking colored objects in videos. 
       * A straightforward script pre-configured to track yellow objects.
       * Demonstrates the core object tracking logic.
 ##Example
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/51e7da1a-f056-4d30-81d5-bf811b4ad9aa" />
+<img width="1920" height="1080" alt="download" src="https://github.com/user-attachments/assets/c795f3d8-c1ca-4d02-ab5a-0aa8be81ed36" />
+
 
 
 ## Requirements
