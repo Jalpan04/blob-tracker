@@ -4,7 +4,7 @@
 
 **Pixelmess** is a real-time visual performance tool that turns your webcam or video files into reactive, high-energy glitch art. Designed for creative coders, VJs, and content creators, it breaks free from static filters with a "drag-and-drop" interface for instant cyberpunk visuals.
 
-## 🚀 Key Features
+## Key Features
 
 *   **Live & Offline**: Jam live with your webcam or batch-process video clips for high-quality production.
 *   **Dynamic Tracking**: Automatically detects motion to apply effects only where it matters—on the action.
@@ -12,7 +12,7 @@
 *   **Smart Export**: Render 60FPS MP4s with a single click, ready for social media.
 *   **Shape-Aware Labels**: Intelligent labeling system that adapts to both circular and rectangular tracking regions.
 
-## 📥 Installation
+## Installation
 
 ### For Users (Windows)
 1.  Go to the **[Releases](../../releases)** page.
@@ -33,7 +33,7 @@
     python app.py
     ```
 
-## 🎮 Controls
+## Controls
 
 | Area | Function |
 | :--- | :--- |
@@ -42,7 +42,7 @@
 | **Filter Effects** | Apply pixel shaders like CRT, Thermal, or Edge detection. |
 | **Export** | Toggle Webcam recording or Export video files. |
 
-## 👨‍💻 Credits
+## Credits
 
 Created by **Jalpan Vyas**.
 Powered by **Python**, **OpenCV**, and **Dear PyGui**.
