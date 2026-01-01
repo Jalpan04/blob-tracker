@@ -1,6 +1,4 @@
-# Pixelmess: The Glitch Art Workstation
-
-![Pixelmess Logo](logo.png)
+# Pixelmess: The Glitch Art Workstation <img src="logo.png" height="40" align="bottom"/>
 
 **Pixelmess** is a real-time visual performance tool that turns your webcam or video files into reactive, high-energy glitch art. Designed for creative coders, VJs, and content creators, it breaks free from static filters with a "drag-and-drop" interface for instant cyberpunk visuals.
 
