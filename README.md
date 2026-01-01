@@ -40,6 +40,18 @@
 | **Filter Effects** | Apply pixel shaders like CRT, Thermal, or Edge detection. |
 | **Export** | Toggle Webcam recording or Export video files. |
 
+## ⚠️ Troubleshooting
+
+**"Chrome blocked this file as dangerous"**  
+This happens because the app is new and not digitally signed (which costs money). To download:
+1. Click the **Downloads** icon in Chrome (top right).
+2. Find Pixelmess.exe and click **Keep**.
+3. If prompted again, click **Keep anyway**.
+
+**"Windows protected your PC"**  
+1. Click **More Info**.
+2. Click **Run anyway**.
+
 ## Credits
 
 Created by **Jalpan Vyas**.
