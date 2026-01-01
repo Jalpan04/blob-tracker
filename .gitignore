@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*$py.class
+dist/
+build/
+*.spec
+.vscode/
+.idea/
+*.egg-info/
+venv/
+env/
+*.mp4
+*.log
