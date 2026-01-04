@@ -80,10 +80,35 @@ class BlobTrackerApp:
         dpg.bind_theme(global_theme)
 
     def init_cv(self):
-        # Init texture
-        data = np.zeros((self.tex_h, self.tex_w, 4), dtype=np.float32)
-        with dpg.texture_registry(show=False):
+        # Init texture registry
+        with dpg.texture_registry(show=False, tag="tex_registry"):
+            # Initial placeholder texture
+            data = np.zeros((self.tex_h, self.tex_w, 4), dtype=np.float32)
             dpg.add_dynamic_texture(width=self.tex_w, height=self.tex_h, default_value=data.flatten(), tag="video_texture")
+
+    def update_texture_dimensions(self, width, height):
+        # Only update if dimensions changed
+        if width == self.tex_w and height == self.tex_h:
+            return
+
+        print(f"Updating Texture: {self.tex_w}x{self.tex_h} -> {width}x{height}")
+        self.tex_w = width
+        self.tex_h = height
+        
+        # 1. Delete image from viewport (unbind texture)
+        if dpg.does_item_exist("display_image"):
+            dpg.delete_item("display_image")
+            
+        # 2. Delete old texture
+        if dpg.does_item_exist("video_texture"):
+            dpg.delete_item("video_texture")
+        
+        # 3. Create new texture in registry
+        data = np.zeros((self.tex_h, self.tex_w, 4), dtype=np.float32)
+        dpg.add_dynamic_texture(width=self.tex_w, height=self.tex_h, default_value=data.flatten(), parent="tex_registry", tag="video_texture")
+        
+        # 4. Add Image back to Viewport
+        dpg.add_image("video_texture", parent="viewport_container", tag="display_image")
 
     # --- Callbacks ---
     def load_video_callback(self, sender, app_data):
@@ -104,6 +129,11 @@ class BlobTrackerApp:
         with self.lock:
             if self.cap: self.cap.release()
             self.cap = cv2.VideoCapture(fpath)
+            # Update texture to match video dimensions
+            w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            if w > 0 and h > 0:
+                self.update_texture_dimensions(w, h)
         dpg.configure_item("btn_record", label="Export Video")
         
     def export_save_callback(self, sender, app_data):
@@ -125,6 +155,14 @@ class BlobTrackerApp:
                 self.recording = True
                 dpg.configure_item("btn_record", label="Stop Recording")
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                
+                # Check webcam actual dimensions
+                w, h = self.tex_w, self.tex_h
+                if self.cap and self.cap.isOpened():
+                    w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                    h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                    self.update_texture_dimensions(w, h)
+
                 self.writer = cv2.VideoWriter(self.output_file, fourcc, 30.0, (self.tex_w, self.tex_h))
                 print("Started Live Recording...")
             else:
@@ -146,12 +184,18 @@ class BlobTrackerApp:
         
         # Setup Export
         cap = cv2.VideoCapture(self.video_source)
+        
+        # Get source dimensions
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        # Get FPS from source if possible, else 30
         fps = cap.get(cv2.CAP_PROP_FPS)
         if fps <= 0: fps = 30.0
         
-        out = cv2.VideoWriter(output_path, fourcc, fps, (self.tex_w, self.tex_h))
+        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+        
+
         
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         count = 0
@@ -191,12 +235,20 @@ class BlobTrackerApp:
     
     
     def load_webcam_callback(self, s, a, u):
-        print("Loading Webcam...")
-        self.video_source = "Webcam"
-        with self.lock:
-            if self.cap: self.cap.release()
-            self.cap = cv2.VideoCapture(0)
-        dpg.configure_item("btn_record", label="Start Recording")
+        if self.video_source != "Webcam":
+            print("Loading Webcam...")
+            self.video_source = "Webcam"
+            with self.lock:
+                if self.cap: self.cap.release()
+                self.cap = cv2.VideoCapture(0)
+                
+                # Update texture for webcam resolution
+                w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                if w > 0 and h > 0:
+                    self.update_texture_dimensions(w, h)
+                    
+            dpg.configure_item("btn_record", label="Start Recording")
 
     def reset_settings(self):
         # Stop recording if active
@@ -332,16 +384,15 @@ class BlobTrackerApp:
                     dpg.add_text("Tracking: Motion Only (Auto)")
 
                 # --- VIEWPORT ---
-                with dpg.child_window(border=False):
-                    dpg.add_image("video_texture")
+                with dpg.child_window(border=False, tag="viewport_container"):
+                    dpg.add_image("video_texture", tag="display_image")
 
         dpg.set_primary_window("Primary Window", True)
 
     # --- Processing Logic ---
     def process_frame(self, frame):
-        # Resize inputs to tex size ??? Or resize tex to fit?
-        # For simplicity, resize frame to 1280x720
-        frame = cv2.resize(frame, (self.tex_w, self.tex_h))
+        # NO RESIZE - Use native resolution
+        # frame = cv2.resize(frame, (self.tex_w, self.tex_h))
         
 
 
@@ -691,9 +742,14 @@ class BlobTrackerApp:
                          self.writer.write(final)
 
                     final_rgba = cv2.cvtColor(final, cv2.COLOR_BGR2RGBA)
+                    # Update texture
                     data = final_rgba.astype(np.float32) / 255.0
-                    
-                    dpg.set_value("video_texture", data.flatten())
+                    try:
+                        dpg.set_value("video_texture", data.flatten())
+                    except SystemError:
+                        print("Texture update missed frame dimension change (Safe skip)")
+                    except Exception as e:
+                        print(f"Texture update error: {e}")
             
             # Standard 60 FPS cap
             time.sleep(1/60)
